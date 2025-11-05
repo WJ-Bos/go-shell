@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 )
@@ -10,15 +11,16 @@ var _ = os.Stdout
 
 func main() {
 
-	fmt.Fprint(os.Stdout, "$ ")
-	var cmd string
-	_, err := fmt.Scanln(&cmd)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading input:", err)
-		os.Exit(1)
+	for {
+		fmt.Fprint(os.Stdout, "$ ")
+
+		command, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading input:", err)
+			os.Exit(1)
+		}
+
+		fmt.Println(command[:len(command)-1] + ": command not found")
 	}
-	switch cmd {
-	default:
-		fmt.Fprintf(os.Stderr, "%s: command not found\n", cmd)
-	}
+
 }
