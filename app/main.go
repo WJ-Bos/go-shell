@@ -12,6 +12,11 @@ var _ = fmt.Fprint
 var _ = os.Stdout
 
 func main() {
+	builtIns := map[string]bool{
+		"echo": true,
+		"type": true,
+		"exit": true,
+	}
 
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
@@ -36,6 +41,10 @@ func main() {
 
 		command := parts[0]
 
+		if !builtIns[command] {
+			fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+		}
+
 		switch command {
 		case "echo":
 			{
@@ -46,10 +55,19 @@ func main() {
 					fmt.Println(" ")
 				}
 			}
-		default:
+		case "type":
 			{
-				fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+				if len(parts) > 1 {
+					if !builtIns[parts[1]] {
+						fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+					} else {
+						fmt.Println(parts[1] + " is a shell builtin")
+					}
+				} else {
+					fmt.Println("To use type command please provide 'type' followed by a shell builtin.")
+				}
 			}
+
 		}
 	}
 
