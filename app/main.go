@@ -10,6 +10,15 @@ var _ = os.Stdout
 
 func main() {
 
-	// TODO: Uncomment the code below to pass the first stage
 	fmt.Fprint(os.Stdout, "$ ")
+	var cmd string
+	_, err := fmt.Scanln(&cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading input:", err)
+		os.Exit(1)
+	}
+	switch cmd {
+	default:
+		fmt.Fprintf(os.Stderr, "%s: command not found\n", cmd)
+	}
 }
