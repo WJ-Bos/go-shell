@@ -59,7 +59,7 @@ func main() {
 			{
 				if len(parts) > 1 {
 					if !builtIns[parts[1]] {
-						fmt.Fprintf(os.Stderr, "%s: command not found\n", parts[1])
+						fmt.Fprintf(os.Stderr, "%s: not found\n", parts[1])
 					} else {
 						fmt.Println(parts[1] + " is a shell builtin")
 					}
