@@ -35,7 +35,22 @@ func main() {
 		}
 
 		command := parts[0]
-		fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+
+		switch command {
+		case "echo":
+			{
+				if len(parts) > 1 {
+					toPrint := parts[1:]
+					fmt.Println(strings.Join(toPrint, " "))
+				} else {
+					fmt.Println(" ")
+				}
+			}
+		default:
+			{
+				fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
+			}
+		}
 	}
 
 }
