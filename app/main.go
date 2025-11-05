@@ -4,71 +4,73 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
+
+	"github.com/codecrafters-io/shell-starter-go/commands"
 )
 
 var _ = fmt.Fprint
 var _ = os.Stdout
 
-func main() {
-	builtIns := map[string]bool{
-		"echo": true,
-		"type": true,
-		"exit": true,
+type Shell struct {
+	builtIns map[string]func([]string) error
+}
+
+func NewShell() *Shell {
+	s := &Shell{
+		builtIns: make(map[string]func([]string) error),
 	}
+
+	s.builtIns["echo"] = commands.Echo
+	s.builtIns["exit"] = commands.Exit
+	s.builtIns["type"] = func(args []string) error {
+		return commands.Type(s.getBuiltInNames(), args)
+	}
+
+	return s
+}
+
+func (s *Shell) getBuiltInNames() map[string]bool {
+	names := make(map[string]bool)
+	for name := range s.builtIns {
+		names[name] = true
+	}
+	return names
+}
+
+func (s *Shell) executeCommand(command string, args []string) error {
+	if handler, exists := s.builtIns[command]; exists {
+		return handler(args)
+	}
+	return fmt.Errorf("%s: command not found", command)
+}
+
+func (s *Shell) Run() {
+	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 
-		reader := bufio.NewReader(os.Stdin)
-		line, _ := reader.ReadString('\n')
-		line = strings.TrimSpace(line)
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			break
+		}
 
-		parts := strings.Fields(line)
-		if len(parts) == 0 {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
 
-		if parts[0] == "exit" && len(parts) == 2 {
-			num, err := strconv.Atoi(parts[1])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "Invalid exit code:", parts[1])
-				continue
-			}
-			os.Exit(num)
-		}
+		parts := strings.Fields(line)
+		command, args := parts[0], parts[1:]
 
-		command := parts[0]
-
-		if !builtIns[command] {
-			fmt.Fprintf(os.Stderr, "%s: command not found\n", command)
-		}
-
-		switch command {
-		case "echo":
-			{
-				if len(parts) > 1 {
-					toPrint := parts[1:]
-					fmt.Println(strings.Join(toPrint, " "))
-				} else {
-					fmt.Println(" ")
-				}
-			}
-		case "type":
-			{
-				if len(parts) > 1 {
-					if !builtIns[parts[1]] {
-						fmt.Fprintf(os.Stderr, "%s: not found\n", parts[1])
-					} else {
-						fmt.Println(parts[1] + " is a shell builtin")
-					}
-				} else {
-					fmt.Println("To use type command please provide 'type' followed by a shell builtin.")
-				}
-			}
-
+		if err := s.executeCommand(command, args); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
+}
 
+func main() {
+	shell := NewShell()
+	shell.Run()
 }
